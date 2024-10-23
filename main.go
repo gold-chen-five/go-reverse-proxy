@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// UpstreamServer 代表一個上游服務器
+// UpstreamServer 代表一個上游伺服器
 type UpstreamServer struct {
 	URL          *url.URL
 	Alive        bool
@@ -28,7 +28,7 @@ type LoadBalancer struct {
 	strategy func([]*UpstreamServer) *UpstreamServer
 }
 
-// ProxyServer 反向代理服務器
+// ProxyServer 反向代理伺服器
 type ProxyServer struct {
 	LoadBalancer *LoadBalancer
 	Config       struct {
@@ -38,7 +38,7 @@ type ProxyServer struct {
 	}
 }
 
-// 創建新的反向代理服務器
+// 創建新的反向代理伺服器
 func NewProxyServer(upstreamURLs []string) (*ProxyServer, error) {
 	servers := make([]*UpstreamServer, 0, len(upstreamURLs))
 
@@ -139,20 +139,20 @@ func (p *ProxyServer) healthCheck() {
 func (p *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	server := p.LoadBalancer.strategy(p.LoadBalancer.servers)
 	if server == nil {
-		http.Error(w, "沒有可用的上游服務器", http.StatusServiceUnavailable)
+		http.Error(w, "沒有可用的上游伺服器", http.StatusServiceUnavailable)
 		return
 	}
 
 	// 添加代理相關的 header
 	r.Header.Add("X-Forwarded-For", r.RemoteAddr)
 	r.Header.Add("X-Real-IP", r.RemoteAddr)
-	r.Header.Add("X-Proxy-Id", "go-nginx-clone")
+	r.Header.Add("X-Proxy-Id", "go-reverse-engine")
 
 	server.ReverseProxy.ServeHTTP(w, r)
 }
 
 func main() {
-	// 配置上游服務器
+	// 配置上游伺服器
 	upstreamURLs := []string{
 		"http://localhost:8081",
 		"http://localhost:8082",
@@ -164,13 +164,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 創建 HTTP 服務器
+	// 創建 HTTP 伺服器
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: proxy,
 	}
 
-	fmt.Println("反向代理服務器啟動在 :8080...")
+	fmt.Println("反向代理伺服器啟動在 :8080...")
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
