@@ -1,20 +1,26 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
 )
 
 func main() {
-	// use terminal to decide port
-	port := flag.Int("port", 8081, "server port")
-	flag.Parse()
+	ports := []int{8081, 8082, 8083}
 
-	// default route
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Server-ID", fmt.Sprintf("Backend-Server-%d", *port))
+	for _, port := range ports {
+		go startServer(port)
+	}
+
+	select {}
+}
+
+func startServer(port int) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server-ID", fmt.Sprintf("Backend-Server-%d", port))
 
 		response := fmt.Sprintf(`{
             "server": "Backend-%d",
@@ -25,7 +31,7 @@ func main() {
             },
             "path": "%s",
             "method": "%s"
-        }`, *port,
+        }`, port,
 			r.Header.Get("User-Agent"),
 			r.Header.Get("X-Forwarded-For"),
 			r.Header.Get("X-Real-IP"),
@@ -37,14 +43,14 @@ func main() {
 	})
 
 	// health route
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "OK from backend %d", *port)
+		fmt.Fprintf(w, "OK from backend %d", port)
 	})
 
-	serverAddr := fmt.Sprintf(":%d", *port)
+	serverAddr := fmt.Sprintf(":%d", port)
 	log.Printf("start server at port %s", serverAddr)
-	if err := http.ListenAndServe(serverAddr, nil); err != nil {
+	if err := http.ListenAndServe(serverAddr, mux); err != nil {
 		log.Fatal(err)
 	}
 }

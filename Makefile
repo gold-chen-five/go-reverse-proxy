@@ -7,10 +7,10 @@ dev:
 test:
 	go test -v -cover ./...
 
-# make test-server port=8081
+# make test-server
+# run test server at 8081, 8082, 8083
 test-server:
-	@echo "Running test server on port $(port)"
-	go run example_server/backend/test_backend_server.go -port $(port)
+	go run example_server/backend/test_backend_server.go
 
 test-client: 
 	go run example_server/client/test_client.go
