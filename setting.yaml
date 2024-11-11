@@ -1,0 +1,18 @@
+servers:
+  - listen: ":8080"
+    routes:
+      - match:
+          host: "localhost:8080"
+          path: "/"
+        proxy:
+          upstream:
+            - "http://localhost:8081"
+            - "http://localhost:8082"
+            - "http://localhost:8083"
+      # - match:
+      #     host: "example.com"
+      #     path: "/api"
+      #   proxy:
+      #     upstream:
+      #       - "http://localhost:9091"
+      #       - "http://localhost:9092"

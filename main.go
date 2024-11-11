@@ -5,28 +5,52 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gold-chen-five/go-reverse-proxy/config"
 	"github.com/gold-chen-five/go-reverse-proxy/pkg"
 )
 
 func main() {
-	// 配置上游伺服器
-	upstreamURLs := []string{
-		"http://localhost:8081",
-		"http://localhost:8082",
-		"http://localhost:8083",
-	}
-	proxy, err := pkg.NewProxyServer(upstreamURLs)
+
+	setting, err := config.LoadConfig("setting.yaml")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("(設定檔錯誤)", err)
 	}
 
-	// 創建 HTTP 伺服器
+	// Create a router to handle different routes
+	mux := http.NewServeMux()
+
+	for _, settingConfig := range setting.Servers {
+		for _, route := range settingConfig.Routes {
+			proxy, err := pkg.NewProxyServer(route.Proxy.Upstream)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			mux.HandleFunc(route.Match.Path, func(w http.ResponseWriter, r *http.Request) {
+				// check the host header
+				if r.Host == route.Match.Host {
+					proxy.ServeHTTP(w, r)
+				} else {
+					http.NotFound(w, r)
+				}
+			})
+		}
+	}
+
+	for _, serverConfig := range setting.Servers {
+		go startServer(serverConfig.Listen, mux)
+	}
+
+	select {} // Block forever
+}
+
+func startServer(address string, handler http.Handler) {
 	server := &http.Server{
-		Addr:    ":8080",
-		Handler: proxy,
+		Addr:    address,
+		Handler: handler,
 	}
 
-	fmt.Println("反向代理伺服器啟動在 :8080...")
+	fmt.Printf("Server started on %s...\n", address)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

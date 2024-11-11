@@ -44,6 +44,7 @@ func NewProxyServer(upstreamURLs []string) (*ProxyServer, error) {
 
 	for _, rawURL := range upstreamURLs {
 		upstreamURL, err := url.Parse(rawURL)
+		log.Print(rawURL)
 		if err != nil {
 			return nil, fmt.Errorf("invalid upstream URL %s: %v", rawURL, err)
 		}
