@@ -1,5 +1,5 @@
 servers:
-  - listen: ":80"
+  - listen: ":8080"
     routes:
       - match:
           host: "localhost:8080"
@@ -14,4 +14,5 @@ servers:
       #     path: "/api"
       #   proxy:
       #     upstream:
-      #       - "http://localhost:8080"
+      #       - "http://localhost:9091"
+      #       - "http://localhost:9092"
