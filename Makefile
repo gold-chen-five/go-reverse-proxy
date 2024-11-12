@@ -8,7 +8,7 @@ test:
 	go test -v -cover ./...
 
 start:
-	sudo go main.go
+	sudo go run main.go
 # make test-server
 # run test server at 8081, 8082, 8083
 test-server:
