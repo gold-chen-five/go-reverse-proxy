@@ -1,5 +1,5 @@
 servers:
-  - listen: ":80"
+  - listen: ":8080"
     routes:
       - match:
           host: "testproxy.ddns.net"
