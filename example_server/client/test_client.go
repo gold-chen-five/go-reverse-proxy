@@ -15,7 +15,7 @@ func main() {
 
 	// 測試函數
 	testProxy := func(path string) {
-		url := fmt.Sprintf("http://testproxy.ddns.net%s", path)
+		url := fmt.Sprintf("https://testproxy.ddns.net%s", path)
 		resp, err := client.Get(url)
 		if err != nil {
 			fmt.Printf("請求失敗: %v\n", err)
