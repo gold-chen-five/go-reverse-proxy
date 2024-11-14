@@ -3,7 +3,6 @@ package proxy
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -18,14 +17,12 @@ type UpstreamServer struct {
 	LastChecked  time.Time
 	FailCount    int
 	ReverseProxy *httputil.ReverseProxy
-}
 
-// LoadBalancer 負載均衡器
-type LoadBalancer struct {
-	servers []*UpstreamServer
-	mu      sync.RWMutex
-	// 負載均衡策略函數
-	strategy func([]*UpstreamServer) *UpstreamServer
+	// New fields for enhanced strategies
+	Weight          int32        // for weighted round-robin
+	CurrentWeight   int32        // for weighted round-robin
+	ActiveConns     int32        // for least connections
+	connectionsLock sync.RWMutex // protect connections counter
 }
 
 // ProxyServer 反向代理伺服器
@@ -62,10 +59,7 @@ func NewProxyServer(upstreamURLs []string) (*ProxyServer, error) {
 		})
 	}
 
-	lb := &LoadBalancer{
-		servers:  servers,
-		strategy: roundRobinStrategy, // 默認使用輪詢策略
-	}
+	lb := NewLoadBalancer(servers, RoundRobin)
 
 	proxy := &ProxyServer{
 		LoadBalancer: lb,
@@ -80,21 +74,6 @@ func NewProxyServer(upstreamURLs []string) (*ProxyServer, error) {
 	go proxy.healthCheck()
 
 	return proxy, nil
-}
-
-// 輪詢策略
-func roundRobinStrategy(servers []*UpstreamServer) *UpstreamServer {
-	var alive []*UpstreamServer
-	for _, server := range servers {
-		if server.Alive {
-			alive = append(alive, server)
-		}
-	}
-	if len(alive) == 0 {
-		return nil
-	}
-	// 使用隨機選擇來實現簡單的輪詢
-	return alive[rand.Intn(len(alive))]
 }
 
 // 健康檢查
@@ -136,14 +115,33 @@ func (p *ProxyServer) healthCheck() {
 }
 
 // ServeHTTP 實現了 http.Handler 接口
+// func (p *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// 	server := p.LoadBalancer.strategy(p.LoadBalancer.servers)
+// 	if server == nil {
+// 		http.Error(w, "沒有可用的上游伺服器", http.StatusServiceUnavailable)
+// 		return
+// 	}
+
+// 	// 添加代理相關的 header
+// 	r.Header.Add("X-Forwarded-For", r.RemoteAddr)
+// 	r.Header.Add("X-Real-IP", r.RemoteAddr)
+// 	r.Header.Add("X-Proxy-Id", "go-reverse-engine")
+
+// 	server.ReverseProxy.ServeHTTP(w, r)
+// }
+
 func (p *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	server := p.LoadBalancer.strategy(p.LoadBalancer.servers)
+	server := p.LoadBalancer.GetNextServer(r.RemoteAddr)
 	if server == nil {
-		http.Error(w, "沒有可用的上游伺服器", http.StatusServiceUnavailable)
+		http.Error(w, "No available upstream servers", http.StatusServiceUnavailable)
 		return
 	}
 
-	// 添加代理相關的 header
+	// Track active connections
+	p.LoadBalancer.strategyHandler.IncrementConnections(server)
+	defer p.LoadBalancer.strategyHandler.DecrementConnections(server)
+
+	// Add proxy headers
 	r.Header.Add("X-Forwarded-For", r.RemoteAddr)
 	r.Header.Add("X-Real-IP", r.RemoteAddr)
 	r.Header.Add("X-Proxy-Id", "go-reverse-engine")
