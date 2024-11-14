@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gold-chen-five/go-reverse-proxy/config"
-	"github.com/gold-chen-five/go-reverse-proxy/pkg"
+	"github.com/gold-chen-five/go-reverse-proxy/proxy"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -23,7 +23,7 @@ func main() {
 
 	for _, server := range cfg.Servers {
 		for _, route := range server.Routes {
-			proxy, err := pkg.NewProxyServer(route.Proxy.Upstream)
+			proxy, err := proxy.NewProxyServer(route.Proxy.Upstream)
 			if err != nil {
 				log.Fatal(err)
 			}
