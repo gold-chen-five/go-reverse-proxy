@@ -45,3 +45,14 @@ func LoadConfig(filename string) (*Config, error) {
 
 	return &config, nil
 }
+
+func (cfg *Config) GetAllDomains() []string {
+	var domains []string
+	for _, server := range cfg.Servers {
+		for _, route := range server.Routes {
+			domains = append(domains, route.Match.Host)
+		}
+	}
+
+	return domains
+}

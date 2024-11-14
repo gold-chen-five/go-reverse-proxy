@@ -1,5 +1,6 @@
 servers:
-  - listen: ":80"
+   # HTTPS server with autocert
+  - listen: ":443"
     routes:
       - match:
           host: "testproxy.ddns.net"

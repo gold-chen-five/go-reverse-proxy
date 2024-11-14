@@ -1,17 +1,19 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gold-chen-five/go-reverse-proxy/config"
 	"github.com/gold-chen-five/go-reverse-proxy/pkg"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
 
-	setting, err := config.LoadConfig("setting.yaml")
+	cfg, err := config.LoadConfig("setting.yaml")
 	if err != nil {
 		log.Fatal("(設定檔錯誤)", err)
 	}
@@ -19,8 +21,8 @@ func main() {
 	// Create a router to handle different routes
 	mux := http.NewServeMux()
 
-	for _, settingConfig := range setting.Servers {
-		for _, route := range settingConfig.Routes {
+	for _, server := range cfg.Servers {
+		for _, route := range server.Routes {
 			proxy, err := pkg.NewProxyServer(route.Proxy.Upstream)
 			if err != nil {
 				log.Fatal(err)
@@ -37,20 +39,36 @@ func main() {
 		}
 	}
 
-	for _, serverConfig := range setting.Servers {
-		go startServer(serverConfig.Listen, mux)
+	// Set up autocert manager for automatic TLS certificates
+	domains := cfg.GetAllDomains()
+	certManager := &autocert.Manager{
+		Cache:      autocert.DirCache("certs"),         // Cache certificates on disk
+		Prompt:     autocert.AcceptTOS,                 // Accept Let's Encrypt TOS automatically
+		HostPolicy: autocert.HostWhitelist(domains...), // Replace with your domain(s)
 	}
+
+	for _, serverConfig := range cfg.Servers {
+		go startTLSServer(serverConfig.Listen, mux, certManager)
+	}
+
+	// Redirect HTTP to HTTPS and handle ACME challenges
+	go func() {
+		http.ListenAndServe(":80", certManager.HTTPHandler(nil))
+	}()
 
 	select {} // Block forever
 }
 
-func startServer(address string, handler http.Handler) {
+func startTLSServer(address string, handler http.Handler, certManager *autocert.Manager) {
 	server := &http.Server{
 		Addr:    address,
 		Handler: handler,
+		TLSConfig: &tls.Config{
+			GetCertificate: certManager.GetCertificate,
+		},
 	}
 
-	fmt.Printf("Server started on %s...\n", address)
+	fmt.Printf("HTTPS Server started on %s...\n", address)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
