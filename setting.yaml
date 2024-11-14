@@ -1,5 +1,5 @@
 servers:
-   # HTTPS server with autocert
+  # HTTPS server with autocert
   - listen: ":443"
     routes:
       - match:
@@ -10,3 +10,10 @@ servers:
             - "http://localhost:8081"
             - "http://localhost:8082"
             - "http://localhost:8083"
+          strategy:
+            type: "weighted-round-robin"
+            config:
+              weights:
+                "http://localhost:8081": 3
+                "http://localhost:8082": 2
+                "http://localhost:8083": 1

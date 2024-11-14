@@ -114,22 +114,6 @@ func (p *ProxyServer) healthCheck() {
 	}
 }
 
-// ServeHTTP 實現了 http.Handler 接口
-// func (p *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	server := p.LoadBalancer.strategy(p.LoadBalancer.servers)
-// 	if server == nil {
-// 		http.Error(w, "沒有可用的上游伺服器", http.StatusServiceUnavailable)
-// 		return
-// 	}
-
-// 	// 添加代理相關的 header
-// 	r.Header.Add("X-Forwarded-For", r.RemoteAddr)
-// 	r.Header.Add("X-Real-IP", r.RemoteAddr)
-// 	r.Header.Add("X-Proxy-Id", "go-reverse-engine")
-
-// 	server.ReverseProxy.ServeHTTP(w, r)
-// }
-
 func (p *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	server := p.LoadBalancer.GetNextServer(r.RemoteAddr)
 	if server == nil {
