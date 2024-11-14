@@ -69,7 +69,7 @@ func startTLSServer(address string, handler http.Handler, certManager *autocert.
 	}
 
 	fmt.Printf("HTTPS Server started on %s...\n", address)
-	if err := server.ListenAndServe(); err != nil {
+	if err := server.ListenAndServeTLS("", ""); err != nil {
 		log.Fatal(err)
 	}
 }
