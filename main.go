@@ -6,41 +6,24 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gold-chen-five/go-reverse-proxy/config"
 	"github.com/gold-chen-five/go-reverse-proxy/proxy"
 	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
 
-	cfg, err := config.LoadConfig("setting.yaml")
+	loader, err := proxy.NewConfigLoader("setting.yaml")
 	if err != nil {
-		log.Fatal("(設定檔錯誤)", err)
+		log.Fatalf("Config loader fail: %v", err)
 	}
 
-	// Create a router to handle different routes
-	mux := http.NewServeMux()
-
-	for _, server := range cfg.Servers {
-		for _, route := range server.Routes {
-			proxy, err := proxy.NewProxyServer(route.Proxy.Upstream)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			mux.HandleFunc(route.Match.Path, func(w http.ResponseWriter, r *http.Request) {
-				// check the host header
-				if r.Host == route.Match.Host {
-					proxy.ServeHTTP(w, r)
-				} else {
-					http.NotFound(w, r)
-				}
-			})
-		}
+	proxyServers, err := loader.CreateProxyServers()
+	if err != nil {
+		log.Fatalf("Creating server fail: %v", err)
 	}
 
 	// Set up autocert manager for automatic TLS certificates
-	domains := cfg.GetAllDomains()
+	domains := loader.Config.GetAllDomains()
 	certManager := &autocert.Manager{
 		Cache:      autocert.DirCache("certs"),         // Cache certificates on disk
 		Prompt:     autocert.AcceptTOS,                 // Accept Let's Encrypt TOS automatically

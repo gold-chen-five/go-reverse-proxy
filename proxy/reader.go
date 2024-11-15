@@ -1,4 +1,4 @@
-package config
+package proxy
 
 import (
 	"os"
@@ -27,7 +27,13 @@ type RouteMatch struct {
 }
 
 type ProxyConfig struct {
-	Upstream []string `yaml:"upstream"`
+	Upstream []string       `yaml:"upstream"`
+	Strategy StrategyConfig `yaml:"strategy"`
+}
+
+type StrategyConfig struct {
+	Type   Strategy               `yaml:"type"`
+	Config map[string]interface{} `yaml:"config,omitempty"`
 }
 
 func LoadConfig(filename string) (*Config, error) {
