@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"log"
 	"net/http"
 )
 
@@ -18,7 +17,9 @@ func NewConfigLoader(filename string) (*ConfigLoader, error) {
 	return &ConfigLoader{Config: cfg}, nil
 }
 
-func (cl *ConfigLoader) CreateProxyServers() {
+func (cl *ConfigLoader) CreateProxyServers() (map[string]http.Handler, error) {
+	proxyServers := make(map[string]http.Handler)
+
 	// Create a router to handle different routes
 	mux := http.NewServeMux()
 
@@ -26,7 +27,7 @@ func (cl *ConfigLoader) CreateProxyServers() {
 		for _, route := range server.Routes {
 			px, err := cl.CreateProxyServer(route)
 			if err != nil {
-				log.Fatal(err)
+				return nil, err
 			}
 
 			mux.HandleFunc(route.Match.Path, func(w http.ResponseWriter, r *http.Request) {
@@ -37,10 +38,11 @@ func (cl *ConfigLoader) CreateProxyServers() {
 					http.NotFound(w, r)
 				}
 			})
+			proxyServers[server.Listen] = mux
 		}
 	}
 
-	return mux
+	return proxyServers, nil
 }
 
 func (cl *ConfigLoader) CreateProxyServer(route RouteConfig) (*ProxyServer, error) {

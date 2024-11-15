@@ -30,8 +30,8 @@ func main() {
 		HostPolicy: autocert.HostWhitelist(domains...), // Replace with your domain(s)
 	}
 
-	for _, serverConfig := range cfg.Servers {
-		go startTLSServer(serverConfig.Listen, mux, certManager)
+	for listen, httpHandler := range proxyServers {
+		go startTLSServer(listen, httpHandler, certManager)
 	}
 
 	// Redirect HTTP to HTTPS and handle ACME challenges
