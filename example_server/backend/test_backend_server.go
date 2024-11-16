@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"golang.org/x/net/websocket"
 )
 
 func main() {
@@ -48,9 +50,36 @@ func startServer(port int) {
 		fmt.Fprintf(w, "OK from backend %d", port)
 	})
 
+	// websocket route
+	mux.Handle("/ws", websocket.Handler(func(ws *websocket.Conn) {
+		handleWebsocket(ws)
+	}))
+
 	serverAddr := fmt.Sprintf(":%d", port)
 	log.Printf("start server at port %s", serverAddr)
 	if err := http.ListenAndServe(serverAddr, mux); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func handleWebsocket(ws *websocket.Conn) {
+	defer ws.Close()
+
+	// handle ws message
+	for {
+		// Read message from the client
+		var message string
+		if err := websocket.Message.Receive(ws, &message); err != nil {
+			log.Printf("Error reading WebSocket message: %v", err)
+			break
+		}
+		log.Printf("Received message on server: %s", message)
+
+		// Echo the message back to the client
+		response := fmt.Sprintf("Server received: %s", message)
+		if err := websocket.Message.Send(ws, response); err != nil {
+			log.Printf("Error sending WebSocket message: %v", err)
+			break
+		}
 	}
 }
