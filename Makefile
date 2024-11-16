@@ -4,6 +4,9 @@ build:
 dev: 
 	go run main.go
 
+dev-ssl: 
+	go run main.go --ssl
+
 test:
 	go test -v -cover ./...
 
@@ -20,4 +23,4 @@ test-client:
 test-client-ssl:
 	go run example_server/client/test_client.go --ssl
 
-.PHONY: build dev test-server test-client test-client-ssl test
+.PHONY: build dev dev-ssl test-server test-client test-client-ssl test
