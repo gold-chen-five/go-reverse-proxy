@@ -5,15 +5,27 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"golang.org/x/net/websocket"
 )
 
-// const defaultPath = "testproxy.ddns.net"
 const defaultPath = "localhost:8080"
+const sslPath = "testproxy.ddns.net"
+
+var isSSL = false
 
 func main() {
+
+	// check is using --ssl
+	for _, arg := range os.Args {
+		if arg == "--ssl" {
+			isSSL = true
+			break
+		}
+	}
+
 	// 創建 HTTP 客戶端
 	client := &http.Client{
 		Timeout: 10 * time.Second,
@@ -33,7 +45,13 @@ func main() {
 
 // http test proxy
 func testProxyHttp(client *http.Client, path string) {
-	url := fmt.Sprintf("http://%s%s", defaultPath, path)
+	var url string
+	if isSSL {
+		url = fmt.Sprintf("https://%s%s", sslPath, path)
+	} else {
+		url = fmt.Sprintf("http://%s%s", defaultPath, path)
+	}
+
 	resp, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("請求失敗: %v\n", err)
@@ -57,9 +75,16 @@ func testProxyHttp(client *http.Client, path string) {
 
 // test proxy websocket
 func testProxyWebsocket() {
-	wsPath := fmt.Sprintf("ws://%s%s", defaultPath, "/ws")
+	var wsPath string
+	var origin string
 
-	origin := fmt.Sprintf("http://%s", defaultPath)
+	if isSSL {
+		wsPath = fmt.Sprintf("wss://%s%s", sslPath, "/ws")
+		origin = fmt.Sprintf("https://%s", sslPath)
+	} else {
+		wsPath = fmt.Sprintf("ws://%s%s", defaultPath, "/ws")
+		origin = fmt.Sprintf("http://%s", defaultPath)
+	}
 
 	ws, err := websocket.Dial(wsPath, "", origin)
 

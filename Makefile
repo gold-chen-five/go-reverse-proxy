@@ -17,4 +17,7 @@ test-server:
 test-client: 
 	go run example_server/client/test_client.go
 
-.PHONY: build dev test-server test-client test
+test-client-ssl:
+	go run example_server/client/test_client.go --ssl
+
+.PHONY: build dev test-server test-client test-client-ssl test
