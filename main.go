@@ -31,8 +31,7 @@ func main() {
 	}
 
 	for listen, httpHandler := range proxyServers {
-		// go startTLSServer(listen, httpHandler, certManager)
-		go startServer(listen, httpHandler)
+		go startTLSServer(listen, httpHandler, certManager)
 	}
 
 	// Redirect HTTP to HTTPS and handle ACME challenges
