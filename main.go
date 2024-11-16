@@ -31,7 +31,8 @@ func main() {
 	}
 
 	for listen, httpHandler := range proxyServers {
-		go startTLSServer(listen, httpHandler, certManager)
+		// go startTLSServer(listen, httpHandler, certManager)
+		go startServer(listen, httpHandler)
 	}
 
 	// Redirect HTTP to HTTPS and handle ACME challenges
@@ -53,6 +54,18 @@ func startTLSServer(address string, handler http.Handler, certManager *autocert.
 
 	fmt.Printf("HTTPS Server started on %s...\n", address)
 	if err := server.ListenAndServeTLS("", ""); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func startServer(address string, handler http.Handler) {
+	server := &http.Server{
+		Addr:    address,
+		Handler: handler,
+	}
+
+	fmt.Printf("HTTPS Server started on %s...\n", address)
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

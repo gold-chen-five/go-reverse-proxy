@@ -3,11 +3,15 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
+
+	"golang.org/x/net/websocket"
 )
 
-const defaultPath = "testproxy.ddns.net"
+// const defaultPath = "testproxy.ddns.net"
+const defaultPath = "localhost:8080"
 
 func main() {
 	// 創建 HTTP 客戶端
@@ -24,11 +28,12 @@ func main() {
 	// 測試不同路徑
 	testProxyHttp(client, "/api/test")
 	testProxyHttp(client, "/health")
+	testProxyWebsocket()
 }
 
 // http test proxy
 func testProxyHttp(client *http.Client, path string) {
-	url := fmt.Sprintf("https://%s%s", defaultPath, path)
+	url := fmt.Sprintf("http://%s%s", defaultPath, path)
 	resp, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("請求失敗: %v\n", err)
@@ -52,5 +57,39 @@ func testProxyHttp(client *http.Client, path string) {
 
 // test proxy websocket
 func testProxyWebsocket() {
+	wsPath := fmt.Sprintf("ws://%s%s", defaultPath, "/ws")
 
+	origin := fmt.Sprintf("http://%s", defaultPath)
+
+	ws, err := websocket.Dial(wsPath, "", origin)
+
+	if err != nil {
+		log.Fatalf("Fail to connect websocket %v", err)
+	}
+	defer ws.Close()
+
+	sendMessage := func(message string) {
+		// Send message
+		_, err := ws.Write([]byte(message))
+		if err != nil {
+			log.Printf("Failed to send message: %v\n", err)
+			return
+		}
+		fmt.Printf("Send: %s\n", message)
+
+		// Read response
+		var response = make([]byte, 512)
+		n, err := ws.Read(response)
+		if err != nil {
+			log.Printf("Failed to read response: %v\n", err)
+			return
+		}
+		fmt.Printf("Received: %s\n", string(response[:n]))
+	}
+
+	// Run the test
+	for i := 0; i < 5; i++ {
+		sendMessage(fmt.Sprintf("Hello WebSocket %d", i+1))
+		time.Sleep(1 * time.Second) // Small delay between messages
+	}
 }
