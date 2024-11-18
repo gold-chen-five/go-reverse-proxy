@@ -32,7 +32,7 @@ func main() {
 	}
 
 	// 執行測試
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 10; i++ {
 		testProxyHttp(client, "/")
 		time.Sleep(1 * time.Second) // 延遲以便觀察負載均衡效果
 	}

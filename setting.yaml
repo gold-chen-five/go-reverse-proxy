@@ -14,6 +14,6 @@ servers:
             type: "weighted-round-robin"
             config:
               weights:
-                "http://localhost:8081": 3
-                "http://localhost:8082": 2
-                "http://localhost:8083": 1
+                "http://localhost:8081": 5
+                "http://localhost:8082": 3
+                "http://localhost:8083": 2
