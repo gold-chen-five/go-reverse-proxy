@@ -13,7 +13,7 @@ import (
 
 const defaultPath = "localhost:8080"
 const sslPath = "testproxy.ddns.net"
-const routePath = "/path"
+const routePath = ""
 
 var isSSL = false
 
@@ -83,8 +83,8 @@ func testProxyWebsocket(path string) {
 		wsPath = fmt.Sprintf("wss://%s%s%s", sslPath, path, "/ws")
 		origin = fmt.Sprintf("https://%s%s", sslPath, path)
 	} else {
-		wsPath = fmt.Sprintf("ws://%s%s", defaultPath, "/ws")
-		origin = fmt.Sprintf("http://%s", defaultPath)
+		wsPath = fmt.Sprintf("ws://%s%s%s", defaultPath, path, "/ws")
+		origin = fmt.Sprintf("http://%s%s", defaultPath, path)
 	}
 
 	ws, err := websocket.Dial(wsPath, "", origin)

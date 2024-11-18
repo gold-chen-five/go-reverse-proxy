@@ -29,6 +29,7 @@ func main() {
 		HostPolicy: autocert.HostWhitelist(domains...), // Replace with your domain(s)
 	}
 
+	fmt.Println(proxyServers)
 	for listen, proxyServer := range proxyServers {
 		if proxyServer.Ssl {
 			go startTLSServer(listen, proxyServer.HttpHandler, certManager)
