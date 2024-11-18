@@ -1,18 +1,20 @@
 servers:
-  - listen: ":8080"
+  # HTTPS server with autocert
+  - listen: ":443"
+    ssl: true
     routes:
       - match:
-          host: "localhost:8080"
-          path: "/"
+          host: "yourDomainName.com"
+          path: "" # ypu can setup path "/path" or default ""
         proxy:
           upstream:
             - "http://localhost:8081"
             - "http://localhost:8082"
             - "http://localhost:8083"
-      # - match:
-      #     host: "example.com"
-      #     path: "/api"
-      #   proxy:
-      #     upstream:
-      #       - "http://localhost:9091"
-      #       - "http://localhost:9092"
+          strategy:
+            type: "weighted-round-robin"
+            config:
+              weights:
+                "http://localhost:8081": 5
+                "http://localhost:8082": 3
+                "http://localhost:8083": 2
