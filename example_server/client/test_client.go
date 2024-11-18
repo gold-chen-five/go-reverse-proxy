@@ -13,6 +13,7 @@ import (
 
 const defaultPath = "localhost:8080"
 const sslPath = "testproxy.ddns.net"
+const routePath = "/path"
 
 var isSSL = false
 
@@ -33,14 +34,14 @@ func main() {
 
 	// 執行測試
 	for i := 0; i < 10; i++ {
-		testProxyHttp(client, "/")
+		testProxyHttp(client, routePath)
 		time.Sleep(1 * time.Second) // 延遲以便觀察負載均衡效果
 	}
 
 	// 測試不同路徑
-	testProxyHttp(client, "/api/test")
-	testProxyHttp(client, "/health")
-	testProxyWebsocket()
+	testProxyHttp(client, fmt.Sprintf("%s%s", routePath, "/api/test"))
+	testProxyHttp(client, fmt.Sprintf("%s%s", routePath, "/health"))
+	testProxyWebsocket(routePath)
 }
 
 // http test proxy
@@ -74,13 +75,13 @@ func testProxyHttp(client *http.Client, path string) {
 }
 
 // test proxy websocket
-func testProxyWebsocket() {
+func testProxyWebsocket(path string) {
 	var wsPath string
 	var origin string
 
 	if isSSL {
-		wsPath = fmt.Sprintf("wss://%s%s", sslPath, "/ws")
-		origin = fmt.Sprintf("https://%s", sslPath)
+		wsPath = fmt.Sprintf("wss://%s%s%s", sslPath, path, "/ws")
+		origin = fmt.Sprintf("https://%s%s", sslPath, path)
 	} else {
 		wsPath = fmt.Sprintf("ws://%s%s", defaultPath, "/ws")
 		origin = fmt.Sprintf("http://%s", defaultPath)

@@ -38,10 +38,14 @@ func (cl *ConfigLoader) CreateProxyServers() (map[string]*TProxyServer, error) {
 			mux.HandleFunc(route.Match.Path, func(w http.ResponseWriter, r *http.Request) {
 				// check the host header
 				if r.Host == route.Match.Host {
-					px.ServeHTTP(w, r)
-				} else {
-					http.NotFound(w, r)
+					if len(r.URL.Path) >= len(route.Match.Path) && r.URL.Path[:len(route.Match.Path)] == route.Match.Path {
+						r.URL.Path = r.URL.Path[len(route.Match.Path):]
+						px.ServeHTTP(w, r)
+						return
+					}
 				}
+				http.NotFound(w, r)
+
 			})
 			proxyServers[server.Listen] = &TProxyServer{
 				Ssl:         server.Ssl,
