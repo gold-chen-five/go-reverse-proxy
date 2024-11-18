@@ -13,6 +13,7 @@ type Config struct {
 
 type ServerConfig struct {
 	Listen string        `yaml:"listen"`
+	Ssl    bool          `yaml:"ssl"`
 	Routes []RouteConfig `yaml:"routes"`
 }
 

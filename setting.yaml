@@ -1,10 +1,11 @@
 servers:
   # HTTPS server with autocert
   - listen: ":443"
+    ssl: true
     routes:
       - match:
           host: "testproxy.ddns.net"
-          path: "/"
+          path: "/path"
         proxy:
           upstream:
             - "http://localhost:8081"

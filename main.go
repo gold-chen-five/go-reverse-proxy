@@ -5,15 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gold-chen-five/go-reverse-proxy/proxy"
 	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
-	isSSL := readSslTag()
-
 	loader, err := proxy.NewConfigLoader("setting.yaml")
 	if err != nil {
 		log.Fatalf("Config loader fail: %v", err)
@@ -32,13 +29,12 @@ func main() {
 		HostPolicy: autocert.HostWhitelist(domains...), // Replace with your domain(s)
 	}
 
-	for listen, httpHandler := range proxyServers {
-		if isSSL {
-			go startTLSServer(listen, httpHandler, certManager)
+	for listen, proxyServer := range proxyServers {
+		if proxyServer.Ssl {
+			go startTLSServer(listen, proxyServer.HttpHandler, certManager)
 		} else {
-			go startServer(listen, httpHandler)
+			go startServer(listen, proxyServer.HttpHandler)
 		}
-
 	}
 
 	// Redirect HTTP to HTTPS and handle ACME challenges
@@ -74,16 +70,4 @@ func startServer(address string, handler http.Handler) {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func readSslTag() bool {
-	// check is using --ssl
-	isSSL := false
-	for _, arg := range os.Args {
-		if arg == "--ssl" {
-			isSSL = true
-			break
-		}
-	}
-	return isSSL
 }

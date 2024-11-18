@@ -8,6 +8,11 @@ type ConfigLoader struct {
 	Config *Config
 }
 
+type TProxyServer struct {
+	Ssl         bool
+	HttpHandler http.Handler
+}
+
 func NewConfigLoader(filename string) (*ConfigLoader, error) {
 	cfg, err := LoadConfig(filename)
 	if err != nil {
@@ -17,13 +22,13 @@ func NewConfigLoader(filename string) (*ConfigLoader, error) {
 	return &ConfigLoader{Config: cfg}, nil
 }
 
-func (cl *ConfigLoader) CreateProxyServers() (map[string]http.Handler, error) {
-	proxyServers := make(map[string]http.Handler)
-
-	// Create a router to handle different routes
-	mux := http.NewServeMux()
+func (cl *ConfigLoader) CreateProxyServers() (map[string]*TProxyServer, error) {
+	proxyServers := make(map[string]*TProxyServer)
 
 	for _, server := range cl.Config.Servers {
+		// Create a router to handle different routes
+		mux := http.NewServeMux()
+
 		for _, route := range server.Routes {
 			px, err := cl.CreateProxyServer(route)
 			if err != nil {
@@ -38,7 +43,10 @@ func (cl *ConfigLoader) CreateProxyServers() (map[string]http.Handler, error) {
 					http.NotFound(w, r)
 				}
 			})
-			proxyServers[server.Listen] = mux
+			proxyServers[server.Listen] = &TProxyServer{
+				Ssl:         server.Ssl,
+				HttpHandler: mux,
+			}
 		}
 	}
 
