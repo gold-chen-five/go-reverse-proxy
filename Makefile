@@ -12,6 +12,10 @@ test:
 
 start:
 	sudo /usr/local/go/bin/go run main.go
+
+start-ssl:
+	sudo /usr/local/go/bin/go run main.go --ssl
+	
 # make test-server
 # run test server at 8081, 8082, 8083
 test-server:
