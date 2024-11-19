@@ -16,12 +16,19 @@ servers:
               weights:
                 "http://localhost:8081": 5
                 "http://localhost:8082": 3
+      - match:
+          path: "/path2"
+        proxy:
+          upstream:
+            - "http://localhost:8083"
+          strategy:
+            type: "round-robin"
   - listen: ":443"
     ssl: true
     host: "test2proxy.zapto.org"
     routes:
       - match:
-          path: "/path2"
+          path: "/"
         proxy:
           upstream:
             - "http://localhost:8083"
