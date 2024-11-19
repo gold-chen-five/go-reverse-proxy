@@ -18,7 +18,7 @@ servers:
                 "http://localhost:8082": 3
   - listen: ":443"
     ssl: true
-    host: "testproxy.ddns.net"
+    host: "test2proxy.zapto.org"
     routes:
       - match:
           path: ""
