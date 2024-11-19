@@ -12,7 +12,7 @@ import (
 )
 
 const defaultPath = "localhost:8080"
-const sslPath = "test2proxy.zapto.org"
+const sslPath = "testproxy.ddns.net"
 const routePath = ""
 
 var isSSL = false
