@@ -37,7 +37,7 @@ func (cl *ConfigLoader) CreateProxyServers() (map[string]*TProxyServer, error) {
 
 			mux.HandleFunc(route.Match.Path+"/", func(w http.ResponseWriter, r *http.Request) {
 				// check the host header
-				if r.Host == route.Match.Host {
+				if r.Host == server.Host {
 					if len(r.URL.Path) >= len(route.Match.Path) && r.URL.Path[:len(route.Match.Path)] == route.Match.Path {
 						r.URL.Path = r.URL.Path[len(route.Match.Path):]
 						px.ServeHTTP(w, r)

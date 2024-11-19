@@ -14,6 +14,7 @@ type Config struct {
 type ServerConfig struct {
 	Listen string        `yaml:"listen"`
 	Ssl    bool          `yaml:"ssl"`
+	Host   string        `yaml:"host"`
 	Routes []RouteConfig `yaml:"routes"`
 }
 
@@ -23,7 +24,6 @@ type RouteConfig struct {
 }
 
 type RouteMatch struct {
-	Host string `yaml:"host"`
 	Path string `yaml:"path"`
 }
 
@@ -56,9 +56,7 @@ func LoadConfig(filename string) (*Config, error) {
 func (cfg *Config) GetAllDomains() []string {
 	var domains []string
 	for _, server := range cfg.Servers {
-		for _, route := range server.Routes {
-			domains = append(domains, route.Match.Host)
-		}
+		domains = append(domains, server.Host)
 	}
 
 	return domains

@@ -14,10 +14,10 @@ func mockConfig() *Config {
 			{
 				Listen: ":8080",
 				Ssl:    false,
+				Host:   "localhost:8080",
 				Routes: []RouteConfig{
 					{
 						Match: RouteMatch{
-							Host: "localhost:8080",
 							Path: "",
 						},
 						Proxy: ProxyConfig{
