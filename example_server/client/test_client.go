@@ -13,7 +13,7 @@ import (
 
 const defaultPath = "localhost:8080"
 const sslPath = "testproxy.ddns.net"
-const routePath = "/path"
+const routePath = ""
 
 var isSSL = false
 
