@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"net/http"
+	"strings"
 )
 
 type ConfigLoader struct {
@@ -11,6 +12,11 @@ type ConfigLoader struct {
 type TProxyServer struct {
 	Ssl         bool
 	HttpHandler http.Handler
+}
+
+type THostServer struct {
+	path string
+	px   *ProxyServer
 }
 
 func NewConfigLoader(filename string) (*ConfigLoader, error) {
@@ -24,39 +30,60 @@ func NewConfigLoader(filename string) (*ConfigLoader, error) {
 
 func (cl *ConfigLoader) CreateProxyServers() (map[string]*TProxyServer, error) {
 	proxyServers := make(map[string]*TProxyServer)
+	hostServers := make(map[string][]THostServer)
 
 	for _, server := range cl.Config.Servers {
-		// Create a router to handle different routes
-		mux := http.NewServeMux()
+		if _, ok := hostServers[server.Host]; !ok {
+			hostServers[server.Host] = []THostServer{}
+		}
 
+		// Create a router to handle different routes
 		for _, route := range server.Routes {
-			px, err := cl.CreateProxyServer(route)
+			px, err := cl.createProxyServer(route)
 			if err != nil {
 				return nil, err
 			}
 
-			mux.HandleFunc(route.Match.Path+"/", func(w http.ResponseWriter, r *http.Request) {
-				// check the host header
-				if r.Host == server.Host {
-					if len(r.URL.Path) >= len(route.Match.Path) && r.URL.Path[:len(route.Match.Path)] == route.Match.Path {
-						r.URL.Path = r.URL.Path[len(route.Match.Path):]
-						px.ServeHTTP(w, r)
-						return
-					}
-				}
-				http.NotFound(w, r)
+			// Append the new THostServer to the list
+			hostServers[server.Host] = append(hostServers[server.Host], THostServer{
+				path: route.Match.Path,
+				px:   px,
 			})
-			proxyServers[server.Listen] = &TProxyServer{
-				Ssl:         server.Ssl,
-				HttpHandler: mux,
-			}
+		}
+	}
+
+	for _, server := range cl.Config.Servers {
+		mux := cl.createMuxServer(&hostServers)
+		proxyServers[server.Listen] = &TProxyServer{
+			Ssl:         server.Ssl,
+			HttpHandler: mux,
 		}
 	}
 
 	return proxyServers, nil
 }
 
-func (cl *ConfigLoader) CreateProxyServer(route RouteConfig) (*ProxyServer, error) {
+func (cl *ConfigLoader) createMuxServer(hostServers *map[string][]THostServer) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		host := r.Host
+
+		if hostServer, ok := (*hostServers)[host]; ok {
+			for _, hs := range hostServer {
+				if strings.HasPrefix(r.URL.Path, hs.path) {
+					r.URL.Path = r.URL.Path[len(hs.path):]
+					hs.px.ServeHTTP(w, r)
+					return
+				}
+			}
+		}
+		http.NotFound(w, r)
+	})
+
+	return mux
+}
+
+func (cl *ConfigLoader) createProxyServer(route RouteConfig) (*ProxyServer, error) {
 	// 創建代理服務器
 	px, err := NewProxyServer(route.Proxy.Upstream)
 	if err != nil {

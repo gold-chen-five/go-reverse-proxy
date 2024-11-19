@@ -70,7 +70,7 @@ func TestCreateProxyServer(t *testing.T) {
 	route := cl.Config.Servers[0].Routes[0]
 
 	// act
-	_, err := cl.CreateProxyServer(route)
+	_, err := cl.createProxyServer(route)
 
 	// assert
 	assert.NoError(t, err, "CreateProxyServer should not be error")
