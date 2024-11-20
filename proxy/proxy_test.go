@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // Test the creation of the proxy server
@@ -16,13 +18,8 @@ func TestNewProxyServer(t *testing.T) {
 	}
 
 	proxyServer, err := NewProxyServer(upstreamURLs)
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
-
-	if len(proxyServer.LoadBalancer.servers) != 2 {
-		t.Fatalf("Expected 2 upstream servers, got %d", len(proxyServer.LoadBalancer.servers))
-	}
+	assert.NoError(t, err, "Expected no error, but got: %v", err)
+	assert.Len(t, proxyServer.LoadBalancer.servers, 2, "Expected lens 2, actual: %d", len(proxyServer.LoadBalancer.servers))
 }
 
 // Test the ServeHTTP functionality

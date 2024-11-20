@@ -39,7 +39,7 @@ func (cl *ConfigLoader) CreateProxyServers() (map[string]*TProxyServer, error) {
 
 		// Create a router to handle different routes
 		for _, route := range server.Routes {
-			px, err := cl.createProxyServer(route)
+			px, err := createProxyServer(route)
 			if err != nil {
 				return nil, err
 			}
@@ -53,7 +53,7 @@ func (cl *ConfigLoader) CreateProxyServers() (map[string]*TProxyServer, error) {
 	}
 
 	for _, server := range cl.Config.Servers {
-		mux := cl.createMuxServer(&hostServers)
+		mux := createMuxServer(&hostServers)
 		proxyServers[server.Listen] = &TProxyServer{
 			Ssl:         server.Ssl,
 			HttpHandler: mux,
@@ -63,7 +63,7 @@ func (cl *ConfigLoader) CreateProxyServers() (map[string]*TProxyServer, error) {
 	return proxyServers, nil
 }
 
-func (cl *ConfigLoader) createMuxServer(hostServers *map[string][]THostServer) http.Handler {
+func createMuxServer(hostServers *map[string][]THostServer) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Host
@@ -83,7 +83,7 @@ func (cl *ConfigLoader) createMuxServer(hostServers *map[string][]THostServer) h
 	return mux
 }
 
-func (cl *ConfigLoader) createProxyServer(route RouteConfig) (*ProxyServer, error) {
+func createProxyServer(route RouteConfig) (*ProxyServer, error) {
 	// 創建代理服務器
 	px, err := NewProxyServer(route.Proxy.Upstream)
 	if err != nil {

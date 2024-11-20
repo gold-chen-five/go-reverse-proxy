@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"sync"
 	"time"
 )
 
@@ -19,10 +18,9 @@ type UpstreamServer struct {
 	ReverseProxy *httputil.ReverseProxy
 
 	// New fields for enhanced strategies
-	Weight          int32        // for weighted round-robin
-	CurrentWeight   int32        // for weighted round-robin
-	ActiveConns     int32        // for least connections
-	connectionsLock sync.RWMutex // protect connections counter
+	Weight        int32 // for weighted round-robin
+	CurrentWeight int32 // for weighted round-robin
+	ActiveConns   int32 // for least connections
 }
 
 // ProxyServer 反向代理伺服器

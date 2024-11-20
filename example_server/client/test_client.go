@@ -42,6 +42,7 @@ func main() {
 	testProxyHttp(client, fmt.Sprintf("%s%s", routePath, "/api/test"))
 	testProxyHttp(client, fmt.Sprintf("%s%s", routePath, "/health"))
 	testProxyWebsocket(routePath)
+
 }
 
 // http test proxy

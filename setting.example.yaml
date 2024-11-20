@@ -2,19 +2,35 @@ servers:
   # HTTPS server with autocert
   - listen: ":443"
     ssl: true
+    host: "yourdomain.com"
     routes:
       - match:
-          host: "yourDomainName.com"
-          path: "" # ypu can setup path "/path" or default ""
+          path: "/"
         proxy:
           upstream:
             - "http://localhost:8081"
             - "http://localhost:8082"
-            - "http://localhost:8083"
           strategy:
-            type: "weighted-round-robin"
+            type: "weighted-round-robin" #round-robin, weighted-round-robin, least-connections, ip-hash
             config:
               weights:
                 "http://localhost:8081": 5
                 "http://localhost:8082": 3
-                "http://localhost:8083": 2
+      - match:
+          path: "/path2"
+        proxy:
+          upstream:
+            - "http://localhost:8083"
+          strategy:
+            type: "round-robin"
+  - listen: ":443"
+    ssl: true
+    host: "yourdomain.com"
+    routes:
+      - match:
+          path: "/"
+        proxy:
+          upstream:
+            - "http://localhost:8083"
+          strategy:
+            type: "round-robin"

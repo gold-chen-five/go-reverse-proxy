@@ -63,15 +63,3 @@ func TestCreateProxyServers(t *testing.T) {
 	// Check response
 	assert.Equal(t, http.StatusMovedPermanently, rec.Code, "Expected status code 301. proxy will redirect the request")
 }
-
-func TestCreateProxyServer(t *testing.T) {
-	// arrange
-	cl := &ConfigLoader{Config: mockConfig()}
-	route := cl.Config.Servers[0].Routes[0]
-
-	// act
-	_, err := cl.createProxyServer(route)
-
-	// assert
-	assert.NoError(t, err, "CreateProxyServer should not be error")
-}
