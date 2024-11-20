@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,15 @@ import (
 )
 
 func main() {
-	loader, err := proxy.NewConfigLoader("setting.yaml")
+	// FILE FLAG
+	flagName := flag.String("file", "setting", "Setting file for proxy")
+
+	// Parse the command-line arguments
+	flag.Parse()
+
+	configFileName := *flagName + ".yaml"
+
+	loader, err := proxy.NewConfigLoader(configFileName)
 	if err != nil {
 		log.Fatalf("Config loader fail: %v", err)
 	}

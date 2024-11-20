@@ -1,8 +1,11 @@
+FILE ?= setting
+
 build:
 	go build -o build
 	copy setting.yaml build
+	
 dev: 
-	go run main.go
+	go run main.go -file=$(FILE)
 
 test:
 	go test -v -cover ./...
