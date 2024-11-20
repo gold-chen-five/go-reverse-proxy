@@ -97,6 +97,7 @@ servers:
 所有配置在Makefile。
 
 - 建立 exe，build 資料夾會有一個exe與setting.yaml，修改配置符合你的專案需求。
+
     ```
     make build
     ```
@@ -106,15 +107,20 @@ servers:
 - 下載golang
 - 下載makefile
 - 啟動測試伺服器 8081 8082 8083
+
     ```
     make test-server
     ```
+
 - 根據setting.yaml啟動反向代理
+
     ```
     make dev
     make start (gcp/linux)
     ```    
+
 - 傳送request和websocket到proxy，改變domain name 到example_server/client/test_client.go修改
+
     ```
     make test-client
     make test-client-ssl
