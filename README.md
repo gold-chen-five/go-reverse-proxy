@@ -79,6 +79,17 @@ servers:
               weights:          # 伺服器權重
                 "http://localhost:8081": 5
                 "http://localhost:8082": 3
+  - listen: ":443"
+    ssl: true
+    host: "your2.domain.com"
+    routes:
+      - match:
+          path: "/"
+        proxy:
+          upstream:
+            - "http://localhost:8083"
+          strategy:
+            type: "round-robin"
 ```
 
 
